@@ -50,4 +50,40 @@ document.addEventListener("DOMContentLoaded", () => {
       window.open(url, "_blank", "noopener,noreferrer");
     });
   }
+  // Independent four-image project slideshows.
+  document.querySelectorAll('[data-slideshow]').forEach((slideshow) => {
+    const images = Array.from(slideshow.querySelectorAll('.slide-image'));
+    const dots = Array.from(slideshow.querySelectorAll('.slide-dot'));
+    const previous = slideshow.querySelector('.slide-prev');
+    const next = slideshow.querySelector('.slide-next');
+    if (images.length !== 4 || dots.length !== 4) return;
+    let current = 0;
+    let timer;
+    const show = (index) => {
+      current = (index + images.length) % images.length;
+      images.forEach((image, i) => image.classList.toggle('is-active', i === current));
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('is-active', i === current);
+        if (i === current) dot.setAttribute('aria-current', 'true');
+        else dot.removeAttribute('aria-current');
+      });
+    };
+    const stop = () => window.clearInterval(timer);
+    const start = () => {
+      stop();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        timer = window.setInterval(() => show(current + 1), 4000);
+      }
+    };
+    previous.addEventListener('click', () => { show(current - 1); start(); });
+    next.addEventListener('click', () => { show(current + 1); start(); });
+    dots.forEach((dot, i) => dot.addEventListener('click', () => { show(i); start(); }));
+    slideshow.addEventListener('mouseenter', stop);
+    slideshow.addEventListener('mouseleave', start);
+    slideshow.addEventListener('focusin', stop);
+    slideshow.addEventListener('focusout', start);
+    show(0);
+    start();
+  });
+
 });
